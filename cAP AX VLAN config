@@ -1,0 +1,82 @@
+/interface bridge
+add name=bridge1 port-cost-mode=short vlan-filtering=yes
+/interface ethernet
+set [ find default-name=ether2 ] poe-out=off
+/interface vlan
+add interface=bridge1 name=MGMT vlan-id=100
+/interface list
+add include=all name=Access
+add name=Mgmt
+/interface wifi channel
+add band=5ghz-ax disabled=no frequency=5200 name=5GhzAX skip-dfs-channels=all width=20/40/80mhz
+add band=2ghz-ax disabled=no frequency=2462 name=2GhzAX secondary-frequency="" skip-dfs-channels=all width=20mhz
+/interface wifi security
+add authentication-types=wpa2-psk,wpa3-psk disabled=no encryption="" name=HomestarSec
+add authentication-types=wpa2-psk,wpa3-psk disabled=no encryption="" name=StrongbadSec
+add authentication-types=wpa2-psk,wpa3-psk disabled=no encryption="" name=TrogdorSec
+/interface wifi configuration
+add channel=5GhzAX country="United States" disabled=no mode=ap name=Homestar5Ghz qos-classifier=priority security=HomestarSec ssid=Homestar
+add channel=2GhzAX country="United States" disabled=no mode=ap name=Homestar2Ghz qos-classifier=priority security=HomestarSec ssid=Homestar
+add channel=2GhzAX country="United States" disabled=no mode=ap name=Strongbad5Ghz qos-classifier=priority security=StrongbadSec ssid=Strongbad
+add channel=2GhzAX country="United States" disabled=no mode=ap name=Strongbad2Ghz qos-classifier=priority security=StrongbadSec ssid=Strongbad
+add channel=2GhzAX country="United States" disabled=no mode=ap name=Trogdor2Ghz qos-classifier=priority security=TrogdorSec ssid=Trogdor
+/interface wifi
+set [ find default-name=wifi2 ] channel=2GhzAX configuration=Homestar2Ghz configuration.mode=ap disabled=no name=Homestar2Ghz security=HomestarSec
+set [ find default-name=wifi1 ] channel=5GhzAX configuration=Homestar5Ghz configuration.mode=ap disabled=no name=Homestar5Ghz security=HomestarSec
+add configuration=Trogdor2Ghz configuration.mode=ap disabled=no mac-address=4A:A9:8A:CA:1B:31 master-interface=Homestar2Ghz name=IoT2Ghz security=TrogdorSec
+add configuration=Strongbad2Ghz configuration.mode=ap disabled=no mac-address=4A:A9:8A:CA:1B:30 master-interface=Homestar2Ghz name=Strongbad2Ghz security=StrongbadSec
+add configuration=Strongbad5Ghz configuration.mode=ap disabled=no mac-address=4A:A9:8A:CA:1B:2E master-interface=Homestar5Ghz name=Strongbad5Ghz security=StrongbadSec
+/ip smb smb-user
+set [ find default=yes ] disabled=yes read-only=yes
+/interface bridge port
+add bridge=bridge1 interface=ether1 internal-path-cost=10 path-cost=10
+add bridge=bridge1 frame-types=admit-only-untagged-and-priority-tagged interface=Homestar2Ghz internal-path-cost=10 path-cost=10 pvid=160
+add bridge=bridge1 frame-types=admit-only-untagged-and-priority-tagged interface=Homestar5Ghz internal-path-cost=10 path-cost=10 pvid=160
+add bridge=bridge1 frame-types=admit-only-untagged-and-priority-tagged interface=Strongbad2Ghz internal-path-cost=10 path-cost=10 pvid=120
+add bridge=bridge1 frame-types=admit-only-untagged-and-priority-tagged interface=IoT2Ghz internal-path-cost=10 path-cost=10 pvid=200
+add bridge=bridge1 frame-types=admit-only-untagged-and-priority-tagged interface=Strongbad5Ghz internal-path-cost=10 path-cost=10 pvid=120
+/ip firewall connection tracking
+set udp-timeout=10s
+/ip neighbor discovery-settings
+set discover-interface-list=Mgmt
+/ipv6 settings
+set accept-router-advertisements=yes
+/interface bridge vlan
+add bridge=bridge1 tagged=ether1,bridge1 vlan-ids=100
+add bridge=bridge1 tagged=ether1 untagged=Strongbad2Ghz,Strongbad5Ghz vlan-ids=120
+add bridge=bridge1 tagged=ether1 untagged=Homestar2Ghz,Homestar5Ghz vlan-ids=160
+add bridge=bridge1 tagged=ether1 untagged=IoT2Ghz vlan-ids=200
+/interface list member
+add interface=MGMT list=Access
+add interface=ether1 list=Access
+add interface=ether2 list=Access
+add interface=bridge1 list=Access
+add interface=Homestar5Ghz list=Access
+add interface=Homestar2Ghz list=Access
+add interface=MGMT list=Mgmt
+/ip dhcp-client
+add interface=MGMT
+/ip service
+set telnet disabled=yes
+set ftp disabled=yes
+set www disabled=yes
+set ssh disabled=yes
+set api disabled=yes
+set winbox port=56473
+set api-ssl disabled=yes
+/ip smb smb-share
+set [ find default=yes ] directory=/pub
+/system identity
+set name=CapAX-1
+/system note
+set show-at-login=no
+/system ntp client
+set enabled=yes
+/system routerboard settings
+set auto-upgrade=yes
+/tool mac-server
+set allowed-interface-list=Access
+/tool mac-server mac-winbox
+set allowed-interface-list=Access
+/tool romon
+set enabled=yes
