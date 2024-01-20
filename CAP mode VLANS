@@ -1,0 +1,51 @@
+# 2024-01-19 23:55:28 by RouterOS 7.14beta7
+# software id = IILR-ELWI
+#
+# model = cAPGi-5HaxD2HaxD
+# serial number = HEG08ZNFGG2
+/interface bridge
+add name=bridge1
+/interface vlan
+add interface=bridge1 name=MGMT vlan-id=100
+/interface wifi datapath
+add bridge=bridge1 disabled=no name=datapath1
+/interface wifi
+# managed by CAPsMAN
+# mode: AP, SSID: Homestar, channel: 2462/ax
+set [ find default-name=wifi2 ] configuration.manager=capsman .mode=ap \
+    datapath=datapath1 disabled=no name=Homestar2GHz
+# managed by CAPsMAN
+# mode: AP, SSID: Homestar, channel: 5240/ax/eC
+set [ find default-name=wifi1 ] configuration.manager=capsman .mode=ap \
+    datapath=datapath1 disabled=no name=Homestar5GHz
+/ip smb smb-user
+set [ find default=yes ] disabled=yes read-only=yes
+/interface bridge port
+add bridge=bridge1 frame-types=admit-only-vlan-tagged interface=ether1
+/ip neighbor discovery-settings
+set discover-interface-list=!dynamic
+/interface bridge vlan
+add bridge=bridge1 tagged=bridge1,ether1 vlan-ids=100
+/interface wifi cap
+set certificate=request discovery-interfaces=MGMT enabled=yes
+/ip dhcp-client
+add interface=MGMT
+/ip service
+set telnet disabled=yes
+set ftp disabled=yes
+set www disabled=yes
+set api disabled=yes
+set winbox port=56473
+set api-ssl disabled=yes
+/ip smb smb-share
+set [ find default=yes ] directory=/pub
+/system clock
+set time-zone-name=America/New_York
+/system note
+set show-at-login=no
+/system ntp client
+set enabled=yes
+/system ntp client servers
+add address=10.20.100.1
+/system routerboard settings
+set auto-upgrade=yes
