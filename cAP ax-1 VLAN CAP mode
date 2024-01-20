@@ -2,7 +2,7 @@
 # software id = IILR-ELWI
 #
 # model = cAPGi-5HaxD2HaxD
-# serial number = HEG08ZNFGG2
+# serial number = 
 /interface bridge
 add name=bridge1
 /interface vlan
